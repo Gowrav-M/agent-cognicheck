@@ -1,8 +1,18 @@
 # agent-cognicheck
 
-Local-first cognitive security and attack-test harness for MCP servers, agent tools, and skills.
+[![CI](https://github.com/Gowrav-M/agent-cognicheck/actions/workflows/ci.yml/badge.svg)](https://github.com/Gowrav-M/agent-cognicheck/actions/workflows/ci.yml)
+[![Node 22+](https://img.shields.io/badge/node-%3E%3D22-339933)](package.json)
+[![License MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Local first](https://img.shields.io/badge/local--first-no%20cloud%20required-111827)](#quickstart)
+[![MCP security](https://img.shields.io/badge/MCP-cognitive%20security-orange)](#what-it-detects)
+
+Local-first security and cognitive-risk scanner for MCP tools and agent skills.
 
 **Agent tools are executable trust boundaries.** A safe-looking MCP server or skill can hide prompt-injection text, invisible Unicode, overbroad tokens, shell access, or source-to-webhook exfiltration paths. `agent-cognicheck` turns those risks into repeatable local tests before agents touch the tools.
+
+![agent-cognicheck terminal demo](docs/assets/terminal-demo.svg)
+
+## Quickstart
 
 ```bash
 npx agent-cognicheck demo
@@ -18,6 +28,19 @@ Attack failures: 5
 Wrote .cognicheck/reports/cognicheck-report.json
 Wrote .cognicheck/reports/cognicheck-report.md
 Wrote .cognicheck/reports/cognicheck-report.html
+```
+
+## Three-Step Scan
+
+```bash
+# 1. Discover MCP tools, configs, and skills
+npx agent-cognicheck discover ./examples
+
+# 2. Run cognitive security checks
+npx agent-cognicheck lint ./examples --fail-on high
+
+# 3. Run the local attack harness
+npx agent-cognicheck attack ./examples --fail-on high
 ```
 
 ## Why This Exists
@@ -42,6 +65,12 @@ agent-cognicheck      pre-deployment tool/skill attack lab
 agent-skillguard      skill supply chain, passport, lock, admission
 agentops-watchtower   runtime evidence, attack graph, firewall
 ```
+
+Use the trilogy together:
+
+- Run `agent-cognicheck` before connecting tools and skills to an agent.
+- Use `agent-skillguard` to approve, lock, passport, and baseline reviewed skills.
+- Use `agentops-watchtower` to record runtime behavior, enforce capability firewalls, and preserve evidence.
 
 ## Commands
 
@@ -100,6 +129,15 @@ jobs:
           node-version: 22
       - run: npx agent-cognicheck attack ./examples --fail-on high
 ```
+
+## Docs
+
+- [Architecture](docs/architecture.md)
+- [Attack corpus](docs/attack-corpus.md)
+- [Threat model](docs/threat-model.md)
+- [CI usage](docs/ci.md)
+- [Comparison](docs/comparison.md)
+- [Launch notes](docs/launch.md)
 
 ## Local Development
 

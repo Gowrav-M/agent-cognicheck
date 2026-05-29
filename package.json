@@ -1,7 +1,7 @@
 {
   "name": "agent-cognicheck",
   "version": "0.1.0",
-  "description": "Local-first cognitive security and attack-test harness for MCP servers, agent tools, and skills.",
+  "description": "Local-first security and cognitive-risk scanner for MCP tools and agent skills with ToolBOM, attack harness, and policy checks.",
   "type": "module",
   "homepage": "https://github.com/Gowrav-M/agent-cognicheck#readme",
   "repository": {
@@ -41,6 +41,11 @@
     "prompt-injection",
     "tool-poisoning",
     "unicode-security",
+    "ai-agents-security",
+    "model-context-protocol",
+    "llm-security",
+    "devsecops",
+    "local-first",
     "supply-chain",
     "cli",
     "sarif"
