@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { existsSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { Command, InvalidArgumentError } from "commander";
 import { runAttackHarness } from "./core/attack.js";
 import { buildToolBom } from "./core/discover.js";
@@ -17,7 +18,7 @@ const program = new Command();
 program
   .name("agent-cognicheck")
   .description("Local-first cognitive security and attack-test harness for MCP servers, agent tools, and skills.")
-  .version("0.1.0");
+  .version("0.1.1");
 
 program
   .command("init")
@@ -41,7 +42,7 @@ program
   .command("demo")
   .description("Run the bundled cognitive security demo.")
   .action(async () => {
-    const report = await createCognicheckReport(resolve("examples"));
+    const report = await createCognicheckReport(bundledExamplesDir());
     const artifacts = await writeCognicheckArtifacts(report, reportsDir());
     console.log("Cognicheck demo complete");
     console.log(`Decision: ${report.decision.toUpperCase()}`);
@@ -54,10 +55,10 @@ program
 
 program
   .command("discover")
-  .argument("[path]", "Directory, MCP descriptor, MCP config, or skill path.", "examples")
+  .argument("[path]", "Directory, MCP descriptor, MCP config, or skill path. Defaults to bundled examples.")
   .description("Discover MCP tools, MCP server configs, and skills.")
-  .action(async (path: string) => {
-    const bom = await buildToolBom(resolve(path));
+  .action(async (path: string | undefined) => {
+    const bom = await buildToolBom(resolveInputPath(path));
     const artifact = await writeBomArtifacts(bom, reportsDir());
     console.log(`Discovered ${bom.summary.tools} tools/skills`);
     console.log(`Wrote ${artifact}`);
@@ -65,10 +66,10 @@ program
 
 program
   .command("bom")
-  .argument("[path]", "Directory, MCP descriptor, MCP config, or skill path.", "examples")
+  .argument("[path]", "Directory, MCP descriptor, MCP config, or skill path. Defaults to bundled examples.")
   .description("Generate ToolBOM/SkillBOM JSON.")
-  .action(async (path: string) => {
-    const bom = await buildToolBom(resolve(path));
+  .action(async (path: string | undefined) => {
+    const bom = await buildToolBom(resolveInputPath(path));
     const artifact = await writeBomArtifacts(bom, reportsDir());
     console.log(`ToolBOM tools: ${bom.summary.tools}`);
     console.log(`Wrote ${artifact}`);
@@ -76,11 +77,11 @@ program
 
 program
   .command("lint")
-  .argument("[path]", "Directory, MCP descriptor, MCP config, or skill path.", "examples")
+  .argument("[path]", "Directory, MCP descriptor, MCP config, or skill path. Defaults to bundled examples.")
   .option("--fail-on <severity>", "Exit non-zero when severity threshold is met.", parseSeverity)
   .description("Run cognitive lint rules over tools and skills.")
-  .action(async (path: string, options: { failOn?: Severity }) => {
-    const report = await lintTools(resolve(path));
+  .action(async (path: string | undefined, options: { failOn?: Severity }) => {
+    const report = await lintTools(resolveInputPath(path));
     const artifacts = await writeLintArtifacts(report, reportsDir());
     console.log(`Lint decision: ${report.decision.toUpperCase()}`);
     console.log(`Findings: ${report.summary.findings}`);
@@ -90,11 +91,11 @@ program
 
 program
   .command("unicode-scan")
-  .argument("[path]", "Directory, MCP descriptor, MCP config, or skill path.", "examples")
+  .argument("[path]", "Directory, MCP descriptor, MCP config, or skill path. Defaults to bundled examples.")
   .option("--fail-on <severity>", "Exit non-zero when severity threshold is met.", parseSeverity)
   .description("Scan tool and skill text for hidden Unicode payloads.")
-  .action(async (path: string, options: { failOn?: Severity }) => {
-    const report = await scanUnicode(resolve(path));
+  .action(async (path: string | undefined, options: { failOn?: Severity }) => {
+    const report = await scanUnicode(resolveInputPath(path));
     const artifacts = await writeUnicodeArtifacts(report, reportsDir());
     console.log(`Unicode findings: ${report.summary.findings}`);
     console.log(`Wrote ${artifacts.json}`);
@@ -103,11 +104,11 @@ program
 
 program
   .command("attack")
-  .argument("[path]", "Directory, MCP descriptor, MCP config, or skill path.", "examples")
+  .argument("[path]", "Directory, MCP descriptor, MCP config, or skill path. Defaults to bundled examples.")
   .option("--fail-on <severity>", "Exit non-zero when attack failures meet threshold.", parseSeverity)
   .description("Run deterministic cognitive attack scenarios.")
-  .action(async (path: string, options: { failOn?: Severity }) => {
-    const report = await runAttackHarness(resolve(path));
+  .action(async (path: string | undefined, options: { failOn?: Severity }) => {
+    const report = await runAttackHarness(resolveInputPath(path));
     const artifacts = await writeAttackArtifacts(report, reportsDir());
     console.log(`Attack decision: ${report.decision.toUpperCase()}`);
     console.log(`Scenarios: ${report.summary.scenarios}`);
@@ -119,11 +120,11 @@ program
 const policy = program.command("policy").description("Evaluate cognitive security policy.");
 policy
   .command("check")
-  .argument("[path]", "Directory, MCP descriptor, MCP config, or skill path.", "examples")
+  .argument("[path]", "Directory, MCP descriptor, MCP config, or skill path. Defaults to bundled examples.")
   .option("--fail-on <severity>", "Policy severity threshold.", parseSeverity)
   .description("Run lint + attack, then evaluate policy.")
-  .action(async (path: string, options: { failOn?: Severity }) => {
-    const target = resolve(path);
+  .action(async (path: string | undefined, options: { failOn?: Severity }) => {
+    const target = resolveInputPath(path);
     const lint = await lintTools(target);
     const attack = await runAttackHarness(target, { generatedAt: lint.generatedAt, bom: lint.bom });
     const decision = evaluatePolicy({ lint, attack, policy: { failOn: options.failOn ?? "critical" } });
@@ -135,10 +136,10 @@ policy
 
 program
   .command("report")
-  .argument("[path]", "Directory, MCP descriptor, MCP config, or skill path.", "examples")
+  .argument("[path]", "Directory, MCP descriptor, MCP config, or skill path. Defaults to bundled examples.")
   .description("Generate combined JSON, Markdown, and HTML reports.")
-  .action(async (path: string) => {
-    const report = await createCognicheckReport(resolve(path));
+  .action(async (path: string | undefined) => {
+    const report = await createCognicheckReport(resolveInputPath(path));
     const artifacts = await writeCognicheckArtifacts(report, reportsDir());
     console.log(`Report decision: ${report.decision.toUpperCase()}`);
     console.log(`Wrote ${artifacts.json}`);
@@ -170,6 +171,18 @@ function localDir(): string {
 
 function reportsDir(): string {
   return join(localDir(), "reports");
+}
+
+function resolveInputPath(path: string | undefined): string {
+  return path === undefined ? bundledExamplesDir() : resolve(path);
+}
+
+function bundledExamplesDir(): string {
+  return join(packageRoot(), "examples");
+}
+
+function packageRoot(): string {
+  return dirname(dirname(fileURLToPath(import.meta.url)));
 }
 
 function parseSeverity(value: string): Severity {

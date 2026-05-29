@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+- Fixed clean-install `npx agent-cognicheck demo` by resolving bundled examples from the installed package path instead of the caller's current working directory.
+- Made pathless `discover`, `bom`, `lint`, `unicode-scan`, `attack`, `policy check`, and `report` use bundled examples by default.
+- Added a regression test for running the demo from a folder without local examples.
+
 ## 0.1.0
 
 - Initial public release.

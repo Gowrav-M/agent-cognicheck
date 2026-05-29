@@ -1,6 +1,6 @@
 {
   "name": "agent-cognicheck",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Local-first security and cognitive-risk scanner for MCP tools and agent skills with ToolBOM, attack harness, and policy checks.",
   "type": "module",
   "homepage": "https://github.com/Gowrav-M/agent-cognicheck#readme",
