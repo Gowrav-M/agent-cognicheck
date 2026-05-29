@@ -1,0 +1,20 @@
+name: Agent Cognicheck
+description: Run local-first cognitive security checks for MCP servers, tools, and skills.
+inputs:
+  path:
+    description: Path to scan.
+    required: false
+    default: "."
+  fail-on:
+    description: Severity threshold for failing the workflow.
+    required: false
+    default: "high"
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: npm ci
+    - shell: bash
+      run: npm run build
+    - shell: bash
+      run: node dist/cli.js attack "${{ inputs.path }}" --fail-on "${{ inputs.fail-on }}"

@@ -1,0 +1,66 @@
+{
+  "name": "agent-cognicheck",
+  "version": "0.1.0",
+  "description": "Local-first cognitive security and attack-test harness for MCP servers, agent tools, and skills.",
+  "type": "module",
+  "homepage": "https://github.com/Gowrav-M/agent-cognicheck#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gowrav-M/agent-cognicheck.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Gowrav-M/agent-cognicheck/issues"
+  },
+  "bin": {
+    "agent-cognicheck": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "examples",
+    "docs",
+    "action.yml",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build": "npm run clean && tsc -p tsconfig.json",
+    "dev": "tsx src/cli.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "prepack": "npm run build"
+  },
+  "keywords": [
+    "ai-agents",
+    "mcp",
+    "mcp-security",
+    "agent-security",
+    "prompt-injection",
+    "tool-poisoning",
+    "unicode-security",
+    "supply-chain",
+    "cli",
+    "sarif"
+  ],
+  "author": "Gowrav M",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/node": "^22.18.12",
+    "eslint": "^9.39.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.2",
+    "vitest": "^4.1.7"
+  }
+}

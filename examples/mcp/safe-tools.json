@@ -1,0 +1,23 @@
+{
+  "server": {
+    "name": "safe-docs"
+  },
+  "tools": [
+    {
+      "name": "search_docs",
+      "description": "Search public project documentation and return citations.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          }
+        },
+        "required": ["query"]
+      },
+      "annotations": {
+        "readOnlyHint": true
+      }
+    }
+  ]
+}
