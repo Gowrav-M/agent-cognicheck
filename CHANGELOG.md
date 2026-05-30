@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0
+
+- Added `evidence` to emit normalized `agent.trust.evidence.v1` cognitive/tool attack evidence for Agent Trust Center.
+- Added a shared Agent Trust Suite diagram to the README.
+- Added trust evidence normalization tests.
+
 ## 0.1.1
 
 - Fixed clean-install `npx agent-cognicheck demo` by resolving bundled examples from the installed package path instead of the caller's current working directory.

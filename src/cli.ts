@@ -11,6 +11,7 @@ import { evaluatePolicy } from "./core/policy.js";
 import { createCognicheckReport, writeAttackArtifacts, writeBomArtifacts, writeCognicheckArtifacts, writeLintArtifacts, writeUnicodeArtifacts } from "./core/report.js";
 import { meetsSeverity } from "./core/risk.js";
 import { severitySchema, type CognitiveFinding, type Severity } from "./core/schemas.js";
+import { createCognicheckTrustEvidence, trustEvidencePath } from "./core/trustEvidence.js";
 import { scanUnicode } from "./core/unicode.js";
 
 const program = new Command();
@@ -18,7 +19,7 @@ const program = new Command();
 program
   .name("agent-cognicheck")
   .description("Local-first cognitive security and attack-test harness for MCP servers, agent tools, and skills.")
-  .version("0.1.1");
+  .version("0.2.0");
 
 program
   .command("init")
@@ -148,6 +149,21 @@ program
   });
 
 program
+  .command("evidence")
+  .description("Write normalized Agent Trust Center evidence from the latest Cognicheck report.")
+  .action(async () => {
+    const paths = cognicheckTrustPaths();
+    if (!existsSync(paths.reportJson)) {
+      throw new Error("No Cognicheck report found. Run agent-cognicheck demo or report first.");
+    }
+    const evidence = await createCognicheckTrustEvidence({ paths, version: "0.2.0" });
+    const outputPath = trustEvidencePath(paths);
+    await writeJsonFile(outputPath, evidence);
+    console.log(`Decision: ${evidence.decision.toUpperCase()}`);
+    console.log(`Trust evidence: ${outputPath}`);
+  });
+
+program
   .command("doctor")
   .description("Check runtime and output folder readiness.")
   .action(async () => {
@@ -171,6 +187,16 @@ function localDir(): string {
 
 function reportsDir(): string {
   return join(localDir(), "reports");
+}
+
+function cognicheckTrustPaths(): { reportsDir: string; reportJson: string; reportMarkdown: string; reportHtml: string } {
+  const dir = reportsDir();
+  return {
+    reportsDir: dir,
+    reportJson: join(dir, "cognicheck-report.json"),
+    reportMarkdown: join(dir, "cognicheck-report.md"),
+    reportHtml: join(dir, "cognicheck-report.html")
+  };
 }
 
 function resolveInputPath(path: string | undefined): string {
